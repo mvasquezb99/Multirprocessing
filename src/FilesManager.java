@@ -78,4 +78,7 @@ public class FilesManager {
     return Arrays.toString(this.paths);
   }
 
+  public String[] getPaths(){
+    return this.paths;
+  }
 }
