@@ -1,5 +1,3 @@
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.lang.Process;
 import java.lang.ProcessBuilder;
@@ -46,6 +44,7 @@ public class Initializer {
                     if ((line = reader.readLine()) != null) { 
                         System.out.println("Process with PID: " + processes.get(i).pid() + " " + line); 
                     }
+                    processes.get(i).destroy();
                 }
             }
 
