@@ -2,13 +2,15 @@ import java.io.InputStreamReader;
 import java.lang.Process;
 import java.lang.ProcessBuilder;
 import java.io.BufferedReader;
+import java.io.IOError;
+import java.io.IOException;
 import java.util.*;
 
 public class Initializer {
     List<Process> processes = new ArrayList<>();
     public int pathsLength;
     public FilesManager manager;
-    public String flag;
+    public String[] flag;
 
     /**
      * @param flag works to store the command flag received form App.class.
@@ -16,7 +18,7 @@ public class Initializer {
      *             the .csv files in the path property, saving it's return
      *             value at this class property pathsLength.
      */
-    public Initializer(String flag) {
+    public Initializer(String[] flag) {
         this.manager = new FilesManager("./output/");
         this.pathsLength = manager.addCsvFiles();
         this.flag = flag;
@@ -29,14 +31,33 @@ public class Initializer {
      *                   is going to execute.
      */
     public int Initialize() throws Exception {
-        if (this.flag == "-s") {
+        long startTime = System.nanoTime();
+        if (this.flag.length != 0 && this.flag[0].equals("-m")) {
             for (int i = 0; i < this.pathsLength; i++) {
                 ProcessBuilder pb = new ProcessBuilder("java", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
                 processes.add(p);
             }
+        } else if (this.flag.length != 0 && this.flag[0].equals("-s")) {
+            for (int i = 0; i < this.pathsLength; i++) {
+                ProcessBuilder pb = new ProcessBuilder("java","-XX:ActiveProcessorCount=1", "./Reader.java",
+                        manager.getFolder() + manager.getPaths()[i]);
+                Process p = pb.start();
+                processes.add(p);
+            }
+        } else {
+            manager.readAllFiles();
+        }
+        long endTime = System.nanoTime();
+        long executionTime = (endTime-startTime);
+        System.out.println(executionTime/1000000);
+        printData();
+        return 0;
+    }
 
+    public void printData() throws IOException{
+        if(this.processes.size() != 0){
             for (int i = 0; i < this.pathsLength; i++) {
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(processes.get(i).getInputStream()))) {
@@ -47,14 +68,6 @@ public class Initializer {
                     processes.get(i).destroy();
                 }
             }
-
-            return 0;
-        } else if (this.flag == "-m") {
-            // TODO
-            return 0;
-        } else {
-            manager.readAllFiles();
-            return 0;
         }
     }
 
