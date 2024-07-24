@@ -1,8 +1,9 @@
 import java.io.InputStreamReader;
 import java.lang.Process;
 import java.lang.ProcessBuilder;
+import java.time.Duration;
+import java.time.Instant;
 import java.io.BufferedReader;
-import java.io.IOError;
 import java.io.IOException;
 import java.util.*;
 
@@ -27,11 +28,11 @@ public class Initializer {
     /**
      * @throws Exception
      *                   At calling the function is going to check for the flag
-     *                   value and decide which of the listed actions in the project 
+     *                   value and decide which of the listed actions in the project
      *                   is going to execute.
      */
     public int Initialize() throws Exception {
-        long startTime = System.nanoTime();
+        Instant startTime = Instant.now();
         if (this.flag.length != 0 && this.flag[0].equals("-m")) {
             for (int i = 0; i < this.pathsLength; i++) {
                 ProcessBuilder pb = new ProcessBuilder("java", "./Reader.java",
@@ -41,7 +42,7 @@ public class Initializer {
             }
         } else if (this.flag.length != 0 && this.flag[0].equals("-s")) {
             for (int i = 0; i < this.pathsLength; i++) {
-                ProcessBuilder pb = new ProcessBuilder("java","-XX:ActiveProcessorCount=1", "./Reader.java",
+                ProcessBuilder pb = new ProcessBuilder("java", "-XX:ActiveProcessorCount=1", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
                 processes.add(p);
@@ -49,15 +50,15 @@ public class Initializer {
         } else {
             manager.readAllFiles();
         }
-        long endTime = System.nanoTime();
-        long executionTime = (endTime-startTime);
-        System.out.println(executionTime/1000000);
+        Instant endTime = Instant.now();
+        long executionTime = Duration.between(startTime, endTime).toMillis();
         printData();
+        System.out.println("Execute total time: " + executionTime + " miliseconds");
         return 0;
     }
 
-    public void printData() throws IOException{
-        if(this.processes.size() != 0){
+    public void printData() throws IOException {
+        if (this.processes.size() != 0) {
             for (int i = 0; i < this.pathsLength; i++) {
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(processes.get(i).getInputStream()))) {

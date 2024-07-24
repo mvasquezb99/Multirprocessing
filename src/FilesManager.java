@@ -37,20 +37,8 @@ public class FilesManager {
   }
 
   public void readAllFiles() {
-    for (String path : this.paths) {
-      try {
-        System.out.println("Reading file: " + path + "\n");
-        File myObj = new File(this.folder + path);
-        Scanner myReader = new Scanner(myObj);
-        while (myReader.hasNextLine()) {
-          @SuppressWarnings("unused")
-          String data = myReader.nextLine();
-          // System.out.println(data);
-        }
-        myReader.close();
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
-      }
+    for (int i = 0; i < this.paths.length; i++) {
+      this.readIndexFile(i);
     }
   }
 
@@ -78,7 +66,7 @@ public class FilesManager {
     return Arrays.toString(this.paths);
   }
 
-  public String[] getPaths(){
+  public String[] getPaths() {
     return this.paths;
   }
 }
