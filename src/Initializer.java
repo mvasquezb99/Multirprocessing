@@ -25,9 +25,8 @@ public class Initializer {
     /**
      * @throws Exception
      *                   At calling the function is going to check for the flag
-     *                   value and create a Process instance with the specified
-     *                   command
-     *                   for each of the files in the output folder.
+     *                   value and decide which of the listed actions in the project 
+     *                   is going to execute.
      */
     public int Initialize() throws Exception {
         if (this.flag == "-s") {
@@ -39,10 +38,11 @@ public class Initializer {
             }
 
             for (int i = 0; i < this.pathsLength; i++) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(processes.get(i).getInputStream())) ) {
-                    String line; 
-                    if ((line = reader.readLine()) != null) { 
-                        System.out.println("Process with PID: " + processes.get(i).pid() + " " + line); 
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(processes.get(i).getInputStream()))) {
+                    String line;
+                    if ((line = reader.readLine()) != null) {
+                        System.out.println("Process with PID: " + processes.get(i).pid() + " " + line);
                     }
                     processes.get(i).destroy();
                 }
