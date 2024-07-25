@@ -4,7 +4,6 @@ import java.lang.ProcessBuilder;
 import java.time.Duration;
 import java.time.Instant;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -32,10 +31,9 @@ public class Initializer {
                 this.flag = flag;
             }
 
-
         } catch (Exception e) {
             System.err.println("La direccion dada no es valida");
-        }   
+        }
     }
 
     /**
@@ -58,6 +56,7 @@ public class Initializer {
                 ProcessBuilder pb = new ProcessBuilder("java", "-XX:ActiveProcessorCount=1", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
+                p.waitFor();
                 processes.add(p);
             }
         } else {
@@ -66,7 +65,7 @@ public class Initializer {
         Instant endTime = Instant.now();
         long executionTime = Duration.between(startTime, endTime).toMillis();
         printData();
-        System.out.println("Execute total time: " + executionTime + " miliseconds");
+        System.out.println("Execute total time: " + executionTime + " milliseconds");
         return 0;
     }
 
