@@ -19,10 +19,12 @@ public class Reader {
             }
             myReader.close();
             Instant end = Instant.now();
-            System.out.println("File: " + args[0] + " Available processors: "
+            System.out.println("Process with PID: " + ProcessHandle.current().pid() + "File: " + args[0]
+                    + " Available processors: "
                     + Runtime.getRuntime().availableProcessors() + " Start time (current seconds): "
                     + start.atZone(ZoneId.systemDefault()).getSecond() + " Time in process (millis): "
                     + Duration.between(start, end).toMillis() + "\n");
+            // The read time includes the time the process in not running
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

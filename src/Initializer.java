@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.util.*;
 
 public class Initializer {
-    List<Process> processes = new ArrayList<>();
-    public int pathsLength;
-    public FilesManager manager;
-    public String[] flag;
+    private List<Process> processes = new ArrayList<>();
+    private int pathsLength;
+    private FilesManager manager;
+    private String[] flag;
 
     /**
      * @param flag works to store the command flag received form App.class.
@@ -42,34 +42,53 @@ public class Initializer {
      *                   value and decide which of the listed actions in the project
      *                   is going to execute.
      */
-    public int Initialize() throws Exception {
+    public int Initialize() throws IOException {
         Instant startTime = Instant.now();
-        if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-m")) {
+        long mainId = ProcessHandle.current().pid();
+
+        if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-m")) { // path -m
             for (int i = 0; i < this.pathsLength; i++) {
                 ProcessBuilder pb = new ProcessBuilder("java", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
                 processes.add(p);
             }
-        } else if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-s")) {
+        } else if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-s")) { // path -s
             for (int i = 0; i < this.pathsLength; i++) {
-                ProcessBuilder pb = new ProcessBuilder("java", "-XX:ActiveProcessorCount=1", "./Reader.java",
+
+                // Get parent PID and current core
+                String[] commands = { "ps", "-o", "psr", "-p", "" + mainId };
+                Process proc = Runtime.getRuntime().exec(commands);
+                BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
+                // Read the output from the command
+                String s;
+                String core = "0";
+                while ((s = stdInput.readLine()) != null) {
+                    if (!(s.equals("PSR".strip()))) {
+                        core = s.strip();
+                    }
+                }
+
+                // Create and start new process
+                ProcessBuilder pb = new ProcessBuilder("taskset", "-c", core, "java", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
-                p.waitFor();
                 processes.add(p);
             }
-        } else {
+        } else { // path no flag
             manager.readAllFiles();
         }
+
         Instant endTime = Instant.now();
         long executionTime = Duration.between(startTime, endTime).toMillis();
         printData();
+        // System.out.println("Parent PID: " + mainId);
         System.out.println("Execute total time: " + executionTime + " milliseconds");
         return 0;
     }
 
-    public void printData() throws IOException {
+    private void printData() throws IOException {
         if (this.processes.size() != 0) {
             for (int i = 0; i < this.pathsLength; i++) {
                 try (BufferedReader reader = new BufferedReader(
