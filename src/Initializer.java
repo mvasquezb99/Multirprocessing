@@ -4,6 +4,7 @@ import java.lang.ProcessBuilder;
 import java.time.Duration;
 import java.time.Instant;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -20,9 +21,21 @@ public class Initializer {
      *             value at this class property pathsLength.
      */
     public Initializer(String[] flag) {
-        this.manager = new FilesManager("./output/");
-        this.pathsLength = manager.addCsvFiles();
-        this.flag = flag;
+        try {
+            if (flag.length == 3) {
+                this.manager = new FilesManager(flag[2]);
+                this.pathsLength = manager.addCsvFiles();
+                this.flag = flag;
+            } else {
+                this.manager = new FilesManager(flag[1]);
+                this.pathsLength = manager.addCsvFiles();
+                this.flag = flag;
+            }
+
+
+        } catch (Exception e) {
+            System.err.println("La direccion dada no es valida");
+        }   
     }
 
     /**
@@ -33,14 +46,14 @@ public class Initializer {
      */
     public int Initialize() throws Exception {
         Instant startTime = Instant.now();
-        if (this.flag.length != 0 && this.flag[0].equals("-m")) {
+        if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-m")) {
             for (int i = 0; i < this.pathsLength; i++) {
                 ProcessBuilder pb = new ProcessBuilder("java", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
                 processes.add(p);
             }
-        } else if (this.flag.length != 0 && this.flag[0].equals("-s")) {
+        } else if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-s")) {
             for (int i = 0; i < this.pathsLength; i++) {
                 ProcessBuilder pb = new ProcessBuilder("java", "-XX:ActiveProcessorCount=1", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
