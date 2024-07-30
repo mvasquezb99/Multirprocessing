@@ -18,9 +18,9 @@ public class Reader {
             myReader.close();
             LocalTime finishTime = java.time.LocalDateTime.now().toLocalTime();
             Instant end = Instant.now();
-            System.out.println("Process with PID: " + ProcessHandle.current().pid() + "File: " + args[0]
+            System.out.println("Process with PID: " + ProcessHandle.current().pid() + " File: " + args[0]
                     + " Finish time: " + finishTime
-                    + " Time in process (millis): " 
+                    + " Time in process (millis): "
                     + Duration.between(start, end).toMillis() + "\n");
             // The read time includes the time the process in not running
         } catch (FileNotFoundException e) {

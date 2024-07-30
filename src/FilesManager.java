@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -11,7 +13,8 @@ public class FilesManager {
 
   /**
    * @param folder folder path to work with (relative from your open folder)
-   * @throws IllegalArgumentException if param is no folder
+   * @throws IllegalArgumentException
+   *                                  if param is no folder
    */
   public FilesManager(String folder) throws IllegalArgumentException {
     if (!(new File(folder).isDirectory())) {
@@ -44,7 +47,8 @@ public class FilesManager {
 
   public void readIndexFile(int index) {
     try {
-      System.out.println("Reading file: " + this.paths[index] + "\n");
+      Instant start = Instant.now();
+      System.out.println("Reading file: " + this.paths[index]);
       File myObj = new File(this.folder + this.paths[index]);
       Scanner myReader = new Scanner(myObj);
       while (myReader.hasNextLine()) {
@@ -53,6 +57,8 @@ public class FilesManager {
         // System.out.println(data);
       }
       myReader.close();
+      Instant end = Instant.now();
+      System.out.println("Time in process (millis): " + Duration.between(start, end).toMillis());
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
