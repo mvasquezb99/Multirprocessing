@@ -1,8 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Scanner;
 
 public class Reader {
@@ -18,11 +16,11 @@ public class Reader {
                 // System.out.println(data);
             }
             myReader.close();
+            LocalTime finishTime = java.time.LocalDateTime.now().toLocalTime();
             Instant end = Instant.now();
             System.out.println("Process with PID: " + ProcessHandle.current().pid() + "File: " + args[0]
-                    + " Available processors: "
-                    + Runtime.getRuntime().availableProcessors() + " Start time (current seconds): "
-                    + start.atZone(ZoneId.systemDefault()).getSecond() + " Time in process (millis): "
+                    + " Finish time: " + finishTime
+                    + " Time in process (millis): " 
                     + Duration.between(start, end).toMillis() + "\n");
             // The read time includes the time the process in not running
         } catch (FileNotFoundException e) {

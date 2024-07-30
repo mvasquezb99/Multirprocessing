@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
+import java.time.*;
 
 public class Initializer {
     private List<Process> processes = new ArrayList<>();
@@ -43,14 +44,17 @@ public class Initializer {
      *                   is going to execute.
      */
     public int Initialize() throws IOException {
-        Instant startTime = Instant.now();
         long mainId = ProcessHandle.current().pid();
-
+        Instant startTime = Instant.now();
         if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-m")) { // path -m
             for (int i = 0; i < this.pathsLength; i++) {
                 ProcessBuilder pb = new ProcessBuilder("java", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
+                if(i == 0){
+                    LocalTime firtstFile = java.time.LocalDateTime.now().toLocalTime();
+                    System.out.println("Carga primer archivo: "+firtstFile);
+                }
                 processes.add(p);
             }
         } else if (this.flag.length != 0 && this.flag.length == 3 && this.flag[0].equals("-s")) { // path -s
@@ -74,16 +78,22 @@ public class Initializer {
                 ProcessBuilder pb = new ProcessBuilder("taskset", "-c", core, "java", "./Reader.java",
                         manager.getFolder() + manager.getPaths()[i]);
                 Process p = pb.start();
+                if(i == 0){
+                    LocalTime firtstFile = java.time.LocalDateTime.now().toLocalTime();
+                    System.out.println("Carga primer archivo: "+firtstFile);
+                }
                 processes.add(p);
             }
         } else { // path no flag
             manager.readAllFiles();
         }
 
+        //LocalDateTime finishTime = java.time.LocalDateTime.now();
+        //stem.out.println("Hora finalizacion: " + finishTime);
+        printData();
+        //System.out.println("Parent PID: " + mainId);
         Instant endTime = Instant.now();
         long executionTime = Duration.between(startTime, endTime).toMillis();
-        printData();
-        // System.out.println("Parent PID: " + mainId);
         System.out.println("Execute total time: " + executionTime + " milliseconds");
         return 0;
     }
