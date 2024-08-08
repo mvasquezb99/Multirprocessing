@@ -3,13 +3,16 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class FilesManager {
 
   private String folder;
   private String[] paths;
+  private List<String> list;
 
   /**
    * @param folder folder path to work with (relative from your open folder)
@@ -21,6 +24,7 @@ public class FilesManager {
       throw new IllegalArgumentException();
     }
     this.folder = folder;
+    this.list = new ArrayList<>();
   }
 
   /**
@@ -52,9 +56,7 @@ public class FilesManager {
       File myObj = new File(this.folder + this.paths[index]);
       Scanner myReader = new Scanner(myObj);
       while (myReader.hasNextLine()) {
-        @SuppressWarnings("unused")
-        String data = myReader.nextLine();
-        // System.out.println(data);
+        this.list.add(myReader.nextLine());
       }
       myReader.close();
       Instant end = Instant.now();
