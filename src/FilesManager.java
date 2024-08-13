@@ -12,7 +12,9 @@ public class FilesManager {
 
   private String folder;
   private String[] paths;
-  private List<String> list;
+  private List<List<String>> list;
+  private int limit = 2000; // Each char equals 2 bytes; 4k = 4000 bytes
+  private List<String> currentData;
 
   /**
    * @param folder folder path to work with (relative from your open folder)
@@ -25,6 +27,7 @@ public class FilesManager {
     }
     this.folder = folder;
     this.list = new ArrayList<>();
+    this.currentData = new ArrayList<>();
   }
 
   /**
@@ -47,6 +50,9 @@ public class FilesManager {
     for (int i = 0; i < this.paths.length; i++) {
       this.readIndexFile(i);
     }
+    if (currentData.get(0).length() > 0) {
+      list.add(currentData);
+    }
   }
 
   public void readIndexFile(int index) {
@@ -56,8 +62,45 @@ public class FilesManager {
       File myObj = new File(this.folder + this.paths[index]);
       Scanner myReader = new Scanner(myObj);
       while (myReader.hasNextLine()) {
-        this.list.add(myReader.nextLine());
+        String line = myReader.nextLine();
+        if (line.length() <= limit) {
+          limit -= line.length();
+          currentData.add(line);
+        } else if (line.length() >= limit) {
+          while (true) {
+            if (line.length() >= limit) {
+              String sub1 = line.substring(0, limit);
+              currentData.add(sub1);
+              if (currentData.get(0).length() > 0)
+                list.add(currentData);
+              currentData = new ArrayList<>();
+              line = line.substring(limit);
+              limit = 2000;
+            } else {
+              if (line.length() <= limit) {
+                limit -= line.length();
+                currentData.add(line);
+              } else {
+                if (currentData.get(0).length() > 0)
+                  list.add(currentData);
+                limit = 2000;
+                currentData = new ArrayList<>();
+                currentData.add(line);
+                limit -= line.length();
+              }
+              break;
+            }
+          }
+        } else {
+          limit = 2000;
+          if (currentData.get(0).length() > 0)
+            list.add(currentData);
+          currentData = new ArrayList<>();
+          currentData.add(line);
+          limit -= line.length();
+        }
       }
+
       myReader.close();
       Instant end = Instant.now();
       System.out.println("Time in process (millis): " + Duration.between(start, end).toMillis());

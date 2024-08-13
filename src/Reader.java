@@ -31,7 +31,7 @@ public class Reader {
                                 list.add(currentData);
                             currentData = new ArrayList<>();
                             line = line.substring(limit);
-                            limit = 2000;
+                            limit = PAGE_LIMIT;
                         } else {
                             if (line.length() <= limit) {
                                 limit -= line.length();
@@ -39,7 +39,7 @@ public class Reader {
                             } else {
                                 if (currentData.get(0).length() > 0)
                                     list.add(currentData);
-                                limit = 2000;
+                                limit = PAGE_LIMIT;
                                 currentData = new ArrayList<>();
                                 currentData.add(line);
                                 limit -= line.length();
@@ -48,7 +48,7 @@ public class Reader {
                         }
                     }
                 } else {
-                    limit = 2000;
+                    limit = PAGE_LIMIT;
                     if (currentData.get(0).length() > 0)
                         list.add(currentData);
                     currentData = new ArrayList<>();
