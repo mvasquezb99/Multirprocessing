@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,10 +11,12 @@ import java.util.Scanner;
 
 public class FilesManager {
 
+  static final int PAGE_LIMIT = 4096;
+
   private String folder;
   private String[] paths;
   private List<List<String>> list;
-  private int limit = 2000; // Each char equals 2 bytes; 4k = 4000 bytes
+  private int limit = PAGE_LIMIT; // Each char equals 2 bytes; 4k = 4000 bytes
   private List<String> currentData;
 
   /**
@@ -63,41 +66,25 @@ public class FilesManager {
       Scanner myReader = new Scanner(myObj);
       while (myReader.hasNextLine()) {
         String line = myReader.nextLine();
-        if (line.length() <= limit) {
-          limit -= line.length();
-          currentData.add(line);
-        } else if (line.length() >= limit) {
-          while (true) {
-            if (line.length() >= limit) {
-              String sub1 = line.substring(0, limit);
-              currentData.add(sub1);
-              if (currentData.get(0).length() > 0)
-                list.add(currentData);
-              currentData = new ArrayList<>();
-              line = line.substring(limit);
-              limit = 2000;
-            } else {
-              if (line.length() <= limit) {
-                limit -= line.length();
-                currentData.add(line);
-              } else {
-                if (currentData.get(0).length() > 0)
-                  list.add(currentData);
-                limit = 2000;
-                currentData = new ArrayList<>();
-                currentData.add(line);
-                limit -= line.length();
-              }
-              break;
-            }
-          }
-        } else {
-          limit = 2000;
-          if (currentData.get(0).length() > 0)
+        while (true) {
+          if (line.getBytes(StandardCharsets.UTF_8).length == limit) {
+            currentData.add(line);
             list.add(currentData);
-          currentData = new ArrayList<>();
-          currentData.add(line);
-          limit -= line.length();
+            currentData = new ArrayList<>();
+            limit = PAGE_LIMIT;
+            break;
+          } else if (line.getBytes().length < limit) {
+            currentData.add(line);
+            limit -= line.getBytes().length;
+            break;
+          } else {
+            byte[] sub = Arrays.copyOf(line.getBytes(), limit);
+            currentData.add(new String(sub, StandardCharsets.UTF_8));
+            list.add(currentData);
+            currentData = new ArrayList<>();
+            line = line.substring(new String(sub, StandardCharsets.UTF_8).length());
+            limit = PAGE_LIMIT;
+          }
         }
       }
 

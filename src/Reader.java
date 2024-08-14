@@ -1,59 +1,46 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
 public class Reader {
 
-    static final int PAGE_LIMIT = 2000;
+    static final int PAGE_LIMIT = 4096; // Each char equals 2 bytes; 4k = 4000 bytes
 
     public static void main(String[] args) {
         Instant start = Instant.now();
         List<List<String>> list = new ArrayList<>();
-        int limit = PAGE_LIMIT; // Each char equals 2 bytes; 4k = 4000 bytes
+        int limit = PAGE_LIMIT;
         List<String> currentData = new ArrayList<>();
         try {
             File myObj = new File(args[0]);
+            // File myObj = new File("./src/output/MXvideos.csv");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String line = myReader.nextLine();
-                if (line.length() <= limit) {
-                    limit -= line.length();
-                    currentData.add(line);
-                } else if (line.length() >= limit) {
-                    while (true) {
-                        if (line.length() >= limit) {
-                            String sub1 = line.substring(0, limit);
-                            currentData.add(sub1);
-                            if (currentData.get(0).length() > 0)
-                                list.add(currentData);
-                            currentData = new ArrayList<>();
-                            line = line.substring(limit);
-                            limit = PAGE_LIMIT;
-                        } else {
-                            if (line.length() <= limit) {
-                                limit -= line.length();
-                                currentData.add(line);
-                            } else {
-                                if (currentData.get(0).length() > 0)
-                                    list.add(currentData);
-                                limit = PAGE_LIMIT;
-                                currentData = new ArrayList<>();
-                                currentData.add(line);
-                                limit -= line.length();
-                            }
-                            break;
-                        }
-                    }
-                } else {
-                    limit = PAGE_LIMIT;
-                    if (currentData.get(0).length() > 0)
+                while (true) {
+                    if (line.getBytes(StandardCharsets.UTF_8).length == limit) {
+                        currentData.add(line);
                         list.add(currentData);
-                    currentData = new ArrayList<>();
-                    currentData.add(line);
-                    limit -= line.length();
+                        currentData = new ArrayList<>();
+                        limit = PAGE_LIMIT;
+                        break;
+                    } else if (line.getBytes().length < limit) {
+                        currentData.add(line);
+                        limit -= line.getBytes().length;
+                        break;
+                    } else {
+                        byte[] sub = Arrays.copyOf(line.getBytes(), limit);
+                        currentData.add(new String(sub, StandardCharsets.UTF_8));
+                        list.add(currentData);
+                        currentData = new ArrayList<>();
+                        line = line.substring(new String(sub, StandardCharsets.UTF_8).length());
+                        limit = PAGE_LIMIT;
+                    }
                 }
             }
             if (currentData.get(0).length() > 0) {
@@ -69,5 +56,13 @@ public class Reader {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
+        // for (List<String> d : list) {
+        // System.out.println("--------------------");
+        // for (String s : d) {
+        // System.out.println(s.getBytes().length);
+        // }
+        // }
+        // System.out.println("pag: " + list.size());
     }
 }
