@@ -1,13 +1,13 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
+import java.io.RandomAccessFile;
 
 public class FilesManager {
 
@@ -15,9 +15,10 @@ public class FilesManager {
 
   private String folder;
   private String[] paths;
-  private List<List<String>> list;
-  private int limit = PAGE_LIMIT; // Each char equals 2 bytes; 4k = 4000 bytes
-  private List<String> currentData;
+  private List<byte[]> list;
+  private long limit = PAGE_LIMIT; // Each char equals 2 bytes; 4k = 4000 bytes
+  private long pointer = 0;
+  private long difference = 0;
 
   /**
    * @param folder folder path to work with (relative from your open folder)
@@ -30,7 +31,6 @@ public class FilesManager {
     }
     this.folder = folder;
     this.list = new ArrayList<>();
-    this.currentData = new ArrayList<>();
   }
 
   /**
@@ -49,46 +49,35 @@ public class FilesManager {
     return this.paths.length;
   }
 
-  public void readAllFiles() {
+  public void readAllFiles() throws IOException {
     for (int i = 0; i < this.paths.length; i++) {
       this.readIndexFile(i);
     }
-    if (currentData.get(0).length() > 0) {
-      list.add(currentData);
-    }
   }
 
-  public void readIndexFile(int index) {
+  public void readIndexFile(int index) throws IOException {
     try {
       Instant start = Instant.now();
       System.out.println("Reading file: " + this.paths[index]);
-      File myObj = new File(this.folder + this.paths[index]);
-      Scanner myReader = new Scanner(myObj);
-      while (myReader.hasNextLine()) {
-        String line = myReader.nextLine();
-        while (true) {
-          if (line.getBytes(StandardCharsets.UTF_8).length == limit) {
-            currentData.add(line);
-            list.add(currentData);
-            currentData = new ArrayList<>();
-            limit = PAGE_LIMIT;
-            break;
-          } else if (line.getBytes().length < limit) {
-            currentData.add(line);
-            limit -= line.getBytes().length;
-            break;
-          } else {
-            byte[] sub = Arrays.copyOf(line.getBytes(), limit);
-            currentData.add(new String(sub, StandardCharsets.UTF_8));
-            list.add(currentData);
-            currentData = new ArrayList<>();
-            line = line.substring(new String(sub, StandardCharsets.UTF_8).length());
-            limit = PAGE_LIMIT;
-          }
+      RandomAccessFile myRaf = new RandomAccessFile(this.folder + this.paths[index], "r");
+      // File myObj = new File("./src/output/MXvideos.csv");
+      myRaf.seek(0);
+      long length = myRaf.length();
+      byte[] line = new byte[PAGE_LIMIT];
+      while (pointer <= length) {
+        myRaf.readFully(line, 0, (int) limit);
+        list.add(line);
+        pointer += PAGE_LIMIT;
+        myRaf.seek(pointer);
+        difference = length - pointer;
+        if (difference > 0 && difference < PAGE_LIMIT) {
+          limit = difference;
+          line = new byte[(int) limit];
+        } else if (difference > PAGE_LIMIT) {
+          line = new byte[PAGE_LIMIT];
         }
       }
-
-      myReader.close();
+      myRaf.close();
       Instant end = Instant.now();
       System.out.println("Time in process (millis): " + Duration.between(start, end).toMillis());
     } catch (FileNotFoundException e) {
